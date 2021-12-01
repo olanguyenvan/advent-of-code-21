@@ -16,11 +16,11 @@ For more information, check documentation at https://deno.land/ .
 
 Every day has its own directory in `src/days`. To auto generate the directory and files, use the following command:
 
-`deno run --allow-net --allow-read --allow-write tools/create_day_scaffold.ts <day>`
+`deno run --allow-net --allow-read --allow-write scripts/create_day_scaffold.ts <day>`
 
 For example
 
-`deno run --allow-net --allow-read --allow-write tools/create_day_scaffold.ts 1`
+`deno run --allow-net --allow-read --allow-write scripts/create_day_scaffold.ts 1`
 
 The command will generate a directory in `src/days` and 2 files:
 
