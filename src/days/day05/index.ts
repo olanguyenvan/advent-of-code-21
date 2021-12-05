@@ -112,51 +112,28 @@ function markVents(
     markDiagonals: boolean = false
 ): void {
     for (const vent of vents) {
+        let verticalIncrement = isFromDownUp(vent) ? 1 : -1;
+        let horizontalIncrement = isFromLeftToRight(vent) ? 1 : -1;
+
         if (isVertical(vent)) {
-            const x = vent[0].x;
-
-            if (isFromDownUp(vent)) {
-                for (let i = vent[0].y; i <= vent[1].y; i++) {
-                    ocean[i][x] += 1;
-                }
-            } else {
-                for (let i = vent[1].y; i <= vent[0].y; i++) {
-                    ocean[i][x] += 1;
-                }
-            }
-            continue;
-        }
-        if (isHorizontal(vent)) {
-            const y = vent[0].y;
-
-            if (isFromLeftToRight(vent)) {
-                for (let i = vent[0].x; i <= vent[1].x; i++) {
-                    ocean[y][i] += 1;
-                }
-            } else {
-                for (let i = vent[1].x; i <= vent[0].x; i++) {
-                    ocean[y][i] += 1;
-                }
-            }
-
+            horizontalIncrement = 0;
+        } else if (isHorizontal(vent)) {
+            verticalIncrement = 0;
+        } else if (!markDiagonals) {
             continue;
         }
 
-        if (markDiagonals) {
-            const distance = Math.abs(vent[1].x - vent[0].x);
+        const distance =
+            Math.abs(vent[1].x - vent[0].x) || Math.abs(vent[1].y - vent[0].y);
 
-            const verticalIncrement = isFromDownUp(vent) ? 1 : -1;
-            const horizontalIncrement = isFromLeftToRight(vent) ? 1 : -1;
+        const startX = vent[0].x;
+        const startY = vent[0].y;
 
-            const startX = vent[0].x;
-            const startY = vent[0].y;
+        for (let i = 0; i <= distance; i++) {
+            const markY = startY + verticalIncrement * i;
+            const markX = startX + horizontalIncrement * i;
 
-            for (let i = 0; i <= distance; i++) {
-                const markY = startY + verticalIncrement * i;
-                const markX = startX + horizontalIncrement * i;
-
-                ocean[markY][markX] += 1;
-            }
+            ocean[markY][markX] += 1;
         }
     }
 }
