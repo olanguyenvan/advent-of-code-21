@@ -11,7 +11,7 @@ function main(rawInput: string) {
 
     // console.log(vents);
     solvePart1(vents);
-    // solvePart2(bingo2);
+    solvePart2(vents);
 }
 
 type coordinates = {
@@ -58,6 +58,18 @@ function solvePart1(vents: vent[]): void {
     console.log(`Answer to part 1 is: ${ventsCrossPointsCount}\n`);
 }
 
+function solvePart2(vents: vent[]): void {
+    const [maxX, maxY] = getOceanSize(vents);
+    const ocean = initEmptyOcean(maxX, maxY);
+
+    markVents(ocean, vents, true);
+
+    const ventsCrossPoints = getVentsCrossPoint(ocean);
+    const ventsCrossPointsCount = ventsCrossPoints.length;
+
+    console.log(`Answer to part 2 is: ${ventsCrossPointsCount}\n`);
+}
+
 function getOceanSize(vents: vent[]): [number, number] {
     let maxY = 0;
     let maxX = 0;
@@ -94,7 +106,11 @@ function isFromLeftToRight(vent: vent): boolean {
     return vent[0].x < vent[1].x;
 }
 
-function markVents(ocean: number[][], vents: vent[]): void {
+function markVents(
+    ocean: number[][],
+    vents: vent[],
+    markDiagonals: boolean = false
+): void {
     for (const vent of vents) {
         if (isVertical(vent)) {
             const x = vent[0].x;
@@ -124,6 +140,23 @@ function markVents(ocean: number[][], vents: vent[]): void {
             }
 
             continue;
+        }
+
+        if (markDiagonals) {
+            const distance = Math.abs(vent[1].x - vent[0].x);
+
+            const verticalIncrement = isFromDownUp(vent) ? 1 : -1;
+            const horizontalIncrement = isFromLeftToRight(vent) ? 1 : -1;
+
+            const startX = vent[0].x;
+            const startY = vent[0].y;
+
+            for (let i = 0; i <= distance; i++) {
+                const markY = startY + verticalIncrement * i;
+                const markX = startX + horizontalIncrement * i;
+
+                ocean[markY][markX] += 1;
+            }
         }
     }
 }
