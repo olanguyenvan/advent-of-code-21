@@ -1,5 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.117.0/testing/asserts.ts";
-import { describe, it } from "https://deno.land/x/test_suite@0.9.1/mod.ts";
+import {
+    describe,
+    each,
+    it,
+} from "https://deno.land/x/test_suite@0.9.1/mod.ts";
 import { getFishLengthAfterDays } from "./fish.ts";
 
 describe("getFishLengthAfterDays", () => {
@@ -12,21 +16,22 @@ describe("getFishLengthAfterDays", () => {
         assertEquals(fishLengthAfterDays, expectedLength);
     });
 
-    it("example input [3, 4, 3, 1, 2] 18 days", () => {
-        const fish = [3, 4, 3, 1, 2];
-        const days = 18;
-        const fishLengthAfterDays = getFishLengthAfterDays(fish, days);
-        const expectedLength = 26;
+    const exampleInput = [3, 4, 3, 1, 2];
 
-        assertEquals(fishLengthAfterDays, expectedLength);
-    });
+    each(
+        "After %s days should be %s",
+        [
+            [exampleInput, 18, 26],
+            [[...exampleInput, ...exampleInput], 18, 26 * 2],
+            [exampleInput, 80, 5934],
+            [[...exampleInput, ...exampleInput], 80, 5934 * 2],
+        ],
+        (fish: number[], days: number, expectedLength: number) => {
+            console.log(expectedLength);
 
-    it("example input [3, 4, 3, 1, 2] 80 days", () => {
-        const fish = [3, 4, 3, 1, 2];
-        const days = 80;
-        const fishLengthAfterDays = getFishLengthAfterDays(fish, days);
-        const expectedLength = 5934;
+            const fishLengthAfterDays = getFishLengthAfterDays(fish, days);
 
-        assertEquals(fishLengthAfterDays, expectedLength);
-    });
+            assertEquals(fishLengthAfterDays, expectedLength);
+        }
+    );
 });

@@ -1,31 +1,32 @@
-type fishInformation = {
-    counter: number;
-    daysLeft: number;
-};
 export function getFishLengthAfterDays(fish: number[], days: number): number {
-    const fishToProcess: fishInformation[] = fish.map((counter) => ({
-        counter,
-        daysLeft: days,
-    }));
+    const cache: number[] = Array.from({
+        length: days + 1,
+    });
+
+    // returns number of children it can produce in days number + 1;
+    function getFamilyCountAfterDays(days: number): number {
+        if (days <= 0) {
+            return 1;
+        }
+
+        if (!cache[days]) {
+            const result =
+                getFamilyCountAfterDays(days - 7) +
+                getFamilyCountAfterDays(days - 9);
+
+            cache[days] = result;
+        }
+        return cache[days];
+    }
 
     let fishCounter = 0;
 
-    while (fishToProcess.length !== 0) {
-        const currentFish = fishToProcess.shift();
-        const { daysLeft: initialDaysLeft, counter: initialCounter } =
-            currentFish!;
-
-        let tmpDaysLeft = initialDaysLeft - initialCounter - 1;
-
-        while (tmpDaysLeft >= 0) {
-            fishToProcess.push({
-                counter: 8,
-                daysLeft: tmpDaysLeft,
-            });
-            tmpDaysLeft -= 7;
-        }
-
-        fishCounter++;
+    for (let i = 0; i < fish.length; i++) {
+        const currentFish = fish[i];
+        const currentFishFamilyCount = getFamilyCountAfterDays(
+            days - currentFish
+        );
+        fishCounter += currentFishFamilyCount;
     }
 
     return fishCounter;
