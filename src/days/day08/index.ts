@@ -1,8 +1,12 @@
 import * as path from "https://deno.land/std/path/mod.ts";
-import { display, getCountOfUniqueLengthDigitsInOutput } from "./display.ts";
+import {
+    display,
+    getCountOfUniqueLengthDigitsInOutput,
+    getDisplaysOutputSum,
+} from "./display.ts";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-const pathToInput = path.resolve(__dirname, `example_input`);
+const pathToInput = path.resolve(__dirname, `input`);
 
 Deno.readTextFile(pathToInput).then(main);
 
@@ -12,7 +16,7 @@ function main(rawInput: string) {
 
     solvePart1(displays);
     console.log("\n");
-    // solvePart2(positions);
+    solvePart2(displays);
 }
 
 const DIGIT_REGEX = /[a-g]+/g;
@@ -45,4 +49,14 @@ function solvePart1(displays: display[]): void {
 
     console.log(`. Answer to part 1 is: ${repOfUniqueLengthDigitsInOutput}.`);
     console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds`);
+}
+
+function solvePart2(displays: display[]): void {
+    const t0 = performance.now();
+
+    const displaysOutputSum = getDisplaysOutputSum(displays);
+    const t1 = performance.now();
+
+    console.log(`. Answer to part 2 is: ${displaysOutputSum}.`);
+    console.log(`Solution to part 2 was solved in ${t1 - t0} milliseconds`);
 }

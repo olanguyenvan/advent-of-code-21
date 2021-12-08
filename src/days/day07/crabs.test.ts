@@ -1,9 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.117.0/testing/asserts.ts";
-import {
-    describe,
-    each,
-    it,
-} from "https://deno.land/x/test_suite@0.9.1/mod.ts";
+import { describe, each } from "https://deno.land/x/test_suite@0.9.1/mod.ts";
 import {
     getClosestPositionForAll,
     getSumOfDistanceFromDestination,
