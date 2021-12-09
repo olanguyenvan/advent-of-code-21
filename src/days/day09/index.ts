@@ -1,5 +1,5 @@
 import * as path from "https://deno.land/std/path/mod.ts";
-import { getRiskLevels } from "./cave.ts";
+import { getRiskLevels, getBasinIds, getBiggestBasinSizes } from "./cave.ts";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 const pathToInput = path.resolve(__dirname, `input`);
@@ -12,10 +12,8 @@ function main(rawInput: string) {
 
     solvePart1(cave);
     console.log("\n");
-    // solvePart2(displays);
+    solvePart2(cave);
 }
-
-const DIGIT_REGEX = /[a-g]+/g;
 
 function parseCaveInput(rawInput: string): number[][] {
     const lines = rawInput.split("\n").filter(Boolean);
@@ -38,6 +36,20 @@ function solvePart1(cave: number[][]): void {
     }, 0);
     const t1 = performance.now();
 
-    console.log(`. Answer to part 1 is: ${sumOfRiskLevels}.`);
-    console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds`);
+    console.log(`Answer to part 1 is: ${sumOfRiskLevels}.`);
+    console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds.`);
+}
+
+function solvePart2(cave: number[][]): void {
+    const t0 = performance.now();
+
+    const caveWithMarkedBasins = getBasinIds(cave);
+    const biggestBasinSizes = getBiggestBasinSizes(caveWithMarkedBasins, 3);
+    const sumOfBiggestBasinSizes = biggestBasinSizes.reduce((acc, size) => {
+        return acc * size;
+    }, 1);
+    const t1 = performance.now();
+
+    console.log(`Answer to part 2 is: ${sumOfBiggestBasinSizes}.`);
+    console.log(`Solution to part 2 was solved in ${t1 - t0} milliseconds.`);
 }
