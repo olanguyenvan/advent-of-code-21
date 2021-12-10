@@ -47,28 +47,7 @@ export function getSyntaxErrorScore(parentheses: string[][]): number {
     return score;
 }
 
-function getUncorruptedParentheses(parentheses: string[][]): string[][] {
-    return parentheses.filter((parenthesesLine) => {
-        const stack: string[] = [];
-
-        for (let i = 0; i < parenthesesLine.length; i++) {
-            const currentParenthes = parenthesesLine[i];
-
-            if (OPENING_PARENTHESES.includes(currentParenthes)) {
-                stack.push(currentParenthes);
-            } else {
-                const lastParenthes = stack.pop()!;
-                if (currentParenthes !== CLOSE_PARENTHESES[lastParenthes]) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    });
-}
-
-function getAutoComplete(parentheses: string[]): string[] {
+function getUnclosedParentheses(parentheses: string[]): string[] {
     const stack: string[] = [];
 
     for (let i = 0; i < parentheses.length; i++) {
@@ -78,13 +57,36 @@ function getAutoComplete(parentheses: string[]): string[] {
             stack.push(currentParenthes);
         } else {
             const lastParenthes = stack.pop()!;
+            const expectedClosingParentheses = CLOSE_PARENTHESES[lastParenthes];
+
+            if (currentParenthes !== expectedClosingParentheses) {
+                throw new Error(
+                    `Given parentheses are corrupted. Expected ${expectedClosingParentheses}, got ${currentParenthes} instead`
+                );
+            }
         }
     }
 
+    return stack;
+}
+
+function areParenthesesValid(parentheses: string[]): boolean {
+    try {
+        getUnclosedParentheses(parentheses);
+    } catch (error) {
+        return false;
+    }
+
+    return true;
+}
+
+function getAutoComplete(parentheses: string[]): string[] {
+    const unclosedParentheses: string[] = getUnclosedParentheses(parentheses);
+
     let autoComplete = [];
 
-    for (let i = stack.length - 1; i >= 0; i--) {
-        autoComplete.push(CLOSE_PARENTHESES[stack[i]]);
+    for (let i = unclosedParentheses.length - 1; i >= 0; i--) {
+        autoComplete.push(CLOSE_PARENTHESES[unclosedParentheses[i]]);
     }
 
     return autoComplete;
@@ -92,7 +94,7 @@ function getAutoComplete(parentheses: string[]): string[] {
 
 export function getAutoCompleteScore(parentheses: string[][]): number {
     const scores: number[] = [];
-    const notCorruptedParentheses = getUncorruptedParentheses(parentheses);
+    const notCorruptedParentheses = parentheses.filter(areParenthesesValid);
 
     for (const parenthesesLine of notCorruptedParentheses) {
         const autoComplete = getAutoComplete(parenthesesLine);
