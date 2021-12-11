@@ -21,15 +21,21 @@ function getNeighboursIndices(
     );
 }
 
+export const UNTIL_SYNC = -1;
+
 export function getFlashesCount(
     octopuses: number[][],
-    steps: number = 100
-): number {
+    steps: number
+): [number, number] {
     const maxHeight = octopuses.length;
     const maxWidth = octopuses[0].length;
-    let score = 0;
 
-    while (steps > 0) {
+    let score = 0;
+    let stepsCounter = 0;
+
+    while (steps === UNTIL_SYNC || stepsCounter < steps) {
+        let tmpScore = 0;
+
         const flashed: boolean[][] = Array.from(
             {
                 length: maxHeight,
@@ -66,7 +72,7 @@ export function getFlashesCount(
 
             octopuses[i][j] = 0;
             flashed[i][j] = true;
-            score++;
+            tmpScore++;
 
             const neighbours = getNeighboursIndices(maxHeight, maxWidth, i, j);
 
@@ -77,25 +83,13 @@ export function getFlashesCount(
                 toTraverse.push([i, j]);
             }
         }
+        score += tmpScore;
+        stepsCounter++;
 
-        steps--;
-    }
-    printOctopuses(octopuses);
-
-    return score;
-}
-
-function printOctopuses(octopuses: number[][]): void {
-    let output: string[] = [];
-
-    for (let i = 0; i < octopuses.length; i++) {
-        let outputLine: string[] = [];
-
-        for (let j = 0; j < octopuses[i].length; j++) {
-            outputLine.push(octopuses[i][j].toString());
+        if (tmpScore === maxHeight * maxWidth) {
+            return [score, stepsCounter];
         }
-        output.push(outputLine.join(""));
     }
 
-    console.log(output.join("\n"));
+    return [score, stepsCounter];
 }
