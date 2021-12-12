@@ -1,30 +1,11 @@
 export type segment = [string, string];
 export type path = string[];
-type point = {
-    name: string;
-    neighbours: point[];
-};
-type visited = { [k: string]: boolean };
-
-function printPaths(paths: path[]) {
-    for (const path of paths) {
-        let s: string[] = [];
-        for (let i = 0; i < path.length; i++) {
-            s.push(path[i]);
-        }
-
-        console.log(s.join(","));
-    }
-}
-
-function printVisited(visited: visited) {
-    let s: string[] = [];
-    for (const [key, value] of Object.entries(visited)) {
-        s.push(`${key} = ${value}`);
-    }
-
-    console.log(s.join(", "));
-}
+type visited = { [k: string]: number };
+type canVisistConditioner = (
+    arg1: visited,
+    arg2: string,
+    arg3: boolean
+) => boolean;
 
 function initializePoints(segments: segment[]): { [k: string]: string[] } {
     const points: { [k: string]: string[] } = {};
@@ -47,7 +28,52 @@ function initializePoints(segments: segment[]): { [k: string]: string[] } {
     return points;
 }
 
-export function getPathsCombinationsCount(segments: segment[]): number {
+export function canVisitConditionerPart1(
+    visited: visited,
+    pointName: string
+): boolean {
+    if (!visited.hasOwnProperty(pointName)) {
+        return true;
+    }
+
+    if (pointName === pointName.toLowerCase()) {
+        return visited[pointName] < 1;
+    }
+
+    return true;
+}
+
+function isSmallCave(pointName: string) {
+    return pointName === pointName.toLowerCase();
+}
+
+export function canVisitConditionerPart2(
+    visited: visited,
+    pointName: string,
+    smallCaveVisitedTwice: boolean
+): boolean {
+    if (!visited.hasOwnProperty(pointName)) {
+        return true;
+    }
+
+    if (["start", "end"].includes(pointName)) {
+        return visited[pointName] < 1;
+    }
+
+    if (isSmallCave(pointName)) {
+        if (smallCaveVisitedTwice) {
+            return visited[pointName] < 1;
+        }
+        return visited[pointName] < 2;
+    }
+
+    return true;
+}
+
+export function getPathsCombinationsCount(
+    segments: segment[],
+    canVisitConditioner: canVisistConditioner
+): number {
     const neighboursPerPoint = initializePoints(segments);
     const visited: visited = {};
 
@@ -58,37 +84,49 @@ export function getPathsCombinationsCount(segments: segment[]): number {
     function getPathsCombinationsCountRec(
         pointName: string,
         visited: visited,
-        accumulatedPath: path
+        accumulatedPath: path,
+        smallCaveVisitedTwice: boolean = false
     ): path[] {
         const currentPath = [...accumulatedPath, pointName];
 
         if (pointName === "end") {
             return [currentPath];
         }
-        visited[pointName] = true;
+
+        if (!visited.hasOwnProperty(pointName)) {
+            visited[pointName] = 0;
+        }
+
+        visited[pointName]++;
 
         const neighbours = neighboursPerPoint[pointName];
 
         let paths: path[] = [];
 
+        const smallCaveVisitedTwiceForNeighbour =
+            smallCaveVisitedTwice ||
+            (isSmallCave(pointName) && visited[pointName] === 2);
+
         for (const neighbour of neighbours) {
-            let canVisit = true;
-            if (neighbour === neighbour.toLowerCase()) {
-                canVisit = !visited[neighbour];
-            }
+            let canVisit = canVisitConditioner(
+                visited,
+                neighbour,
+                smallCaveVisitedTwiceForNeighbour
+            );
 
             if (canVisit) {
                 const neighbourPath = getPathsCombinationsCountRec(
                     neighbour,
                     visited,
-                    currentPath
+                    currentPath,
+                    smallCaveVisitedTwiceForNeighbour
                 );
 
                 paths.push(...neighbourPath);
             }
         }
 
-        visited[pointName] = false;
+        visited[pointName]--;
 
         return paths;
     }
