@@ -97,24 +97,12 @@ function printPoints(points: point[]) {
         maxY = Math.max(maxY, point.y);
     }
 
-    const m: string[][] = Array.from(
-        {
-            length: maxY + 1,
-        },
-        () => {
-            return Array.from(
-                {
-                    length: maxX + 1,
-                },
-                () => "."
-            );
-        }
-    );
+    const m = Array.from(Array(maxY + 1), () => new Array(maxX + 1).fill("  "));
 
     for (const point of points) {
         const { x, y } = point;
 
-        m[y][x] = "#";
+        m[y][x] = "🌸";
     }
 
     const rows: string[] = [];
