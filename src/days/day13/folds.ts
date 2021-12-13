@@ -11,19 +11,33 @@ export type foldInstruction = {
     foldAt: number;
 };
 
+function getPointHash(point: point): string {
+    const { x, y } = point;
+
+    return `${x},${y}`;
+}
+
 function getDeduplicatedPoints(points: point[]): point[] {
     const pointsHashes: { [k: string]: boolean } = {};
 
     return points.filter((point) => {
-        const { x, y } = point;
-
-        const pointsHash = `${x},${y}`;
+        const pointsHash = getPointHash(point);
 
         if (pointsHash in pointsHashes) {
             return false;
         }
         return (pointsHashes[pointsHash] = true);
     });
+}
+
+function getFoldedCoordinate(coordinate: number, foldAt: number): number {
+    if (coordinate < foldAt) {
+        return coordinate;
+    }
+    if (coordinate > foldAt) {
+        return foldAt - (coordinate - foldAt);
+    }
+    return -1;
 }
 
 export function getPointsAfterFolding(
@@ -36,52 +50,26 @@ export function getPointsAfterFolding(
         const tmpFoldedPoints = [];
         const { axis, foldAt } = foldInstruction;
 
-        if (axis === Axis.Left) {
-            // folding to the left - x changes, y not
-            for (const point of deduplicatedPoints) {
-                const { x, y } = point;
-                let foldedPoint: point;
+        for (const point of deduplicatedPoints) {
+            const { x, y } = point;
 
-                if (x < foldAt) {
-                    foldedPoint = {
-                        x,
-                        y,
-                    };
-                    tmpFoldedPoints.push(foldedPoint);
-                } else if (x > foldAt) {
-                    const newX = foldAt - (x - foldAt);
-                    foldedPoint = {
-                        x: newX,
-                        y,
-                    };
+            const coordinateToFold = axis === Axis.Left ? x : y;
+            const foldedCoordinate = getFoldedCoordinate(
+                coordinateToFold,
+                foldAt
+            );
 
-                    tmpFoldedPoints.push(foldedPoint);
-                }
+            if (foldedCoordinate < 0) {
+                continue;
             }
-        } else {
-            // folding up - y changes, x does not
-            for (const point of deduplicatedPoints) {
-                const { x, y } = point;
-                let foldedPoint: point;
 
-                if (y < foldAt) {
-                    foldedPoint = {
-                        x,
-                        y,
-                    };
+            const foldedPoint: point = {
+                x: axis === Axis.Left ? foldedCoordinate : x,
+                y: axis === Axis.Left ? y : foldedCoordinate,
+            };
 
-                    tmpFoldedPoints.push(foldedPoint);
-                } else if (y > foldAt) {
-                    const newY = foldAt - (y - foldAt);
-                    foldedPoint = {
-                        x,
-                        y: newY,
-                    };
-                    tmpFoldedPoints.push(foldedPoint);
-                }
-            }
+            tmpFoldedPoints.push(foldedPoint);
         }
-
         deduplicatedPoints = getDeduplicatedPoints(tmpFoldedPoints);
     }
 
