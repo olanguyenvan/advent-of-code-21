@@ -60,7 +60,7 @@ export function getLeastCommonElementCount(polymer: polymer): number {
     return min;
 }
 
-function getElementsCount(polymer: polymer): elementsCount {
+export function getElementsCount(polymer: polymer): elementsCount {
     let elementsCount: elementsCount = {};
 
     for (let i = 0; i < polymer.length; i++) {
@@ -95,43 +95,19 @@ export function getPolymerElementsCountAfterInsertions(
     steps: number
 ): elementsCount {
     const cache: { [key: string]: string } = {};
-
     let cacheUsageCount = 0;
-    const polymers = getPolymersAfterInsertionsRec(initialPolymer, steps);
-
-    // trim all polymers
-    const trimmedPolymers = polymers.map((polymer) => {
-        return polymer.slice(0, polymer.length - 1);
-    });
-
-    // add last character for the last polymers
-    trimmedPolymers[trimmedPolymers.length - 1] = polymers[polymers.length - 1];
 
     const occurencesCache: { [key: string]: elementsCount } = {};
     let occurencesCacheUsageCount = 0;
-    const sumOccurences: elementsCount = {};
+    const sumOccurences = getPolymersAfterInsertionsRec(initialPolymer, steps);
 
-    for (const trimmedPolymer of trimmedPolymers) {
-        if (!occurencesCache[trimmedPolymer]) {
-            occurencesCache[trimmedPolymer] = getElementsCount(trimmedPolymer);
-        } else {
-            occurencesCacheUsageCount++;
-        }
+    // all sub polymers were trimmed, even the last one.
+    sumOccurences[initialPolymer[initialPolymer.length - 1]]++;
 
-        const elementsCount = occurencesCache[trimmedPolymer];
-
-        for (const [key, value] of Object.entries(elementsCount)) {
-            if (!(key in sumOccurences)) {
-                sumOccurences[key] = 0;
-            }
-
-            sumOccurences[key] += value;
-        }
-    }
-
-    console.log(`cache was used ${cacheUsageCount} times! 🌸`);
+    console.log("cache stats");
+    console.log(`\tcache was used ${cacheUsageCount} times! 🌸`);
     console.log(
-        `occurencesCache was used ${occurencesCacheUsageCount} times out of ${trimmedPolymers.length} trimmed polymers! 🌸`
+        `\toccurencesCache was used ${occurencesCacheUsageCount} times! 🌸`
     );
 
     return sumOccurences;
@@ -139,10 +115,19 @@ export function getPolymerElementsCountAfterInsertions(
     function getPolymersAfterInsertionsRec(
         polymer: polymer,
         steps: number
-    ): polymer[] {
+    ): elementsCount {
         const interval = 6;
         if (steps === 0) {
-            return [polymer];
+            const trimmedPolymer = polymer.slice(0, polymer.length - 1);
+
+            if (!occurencesCache[trimmedPolymer]) {
+                occurencesCache[trimmedPolymer] =
+                    getElementsCount(trimmedPolymer);
+            } else {
+                occurencesCacheUsageCount++;
+            }
+
+            return occurencesCache[trimmedPolymer];
         }
 
         const polymersLengthInterval = getPolymersOfLength(polymer, interval);
@@ -181,17 +166,23 @@ export function getPolymerElementsCountAfterInsertions(
             doublePolymersWithNeighbours.push(polymerLength10);
         }
 
-        const polymers: polymer[] = [];
+        const sumOccurences: elementsCount = {};
 
         for (const polymerLength10 of doublePolymersWithNeighbours) {
-            const subPolymers = getPolymersAfterInsertionsRec(
+            const subElementsCount = getPolymersAfterInsertionsRec(
                 polymerLength10,
                 steps - 1
             );
 
-            polymers.push(...subPolymers);
+            for (const [key, value] of Object.entries(subElementsCount)) {
+                if (!(key in sumOccurences)) {
+                    sumOccurences[key] = 0;
+                }
+
+                sumOccurences[key] += value;
+            }
         }
 
-        return polymers;
+        return sumOccurences;
     }
 }
