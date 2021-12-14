@@ -89,25 +89,33 @@ function getPolymersOfLength(polymer: polymer, length: number): polymer[] {
     return polymers;
 }
 
+function getTrimmedPolymer(polymer: polymer): string {
+    return polymer.slice(0, polymer.length - 1);
+}
+
 export function getPolymerElementsCountAfterInsertions(
     initialPolymer: polymer,
     insertions: insertions,
     steps: number
 ): elementsCount {
-    const cache: { [key: string]: string } = {};
+    type cache = { [key: string]: string };
+
+    const occurencesPerStepsCache: { [key: string]: elementsCount }[] =
+        Array.from(Array(steps), () => ({}));
+
+    let occurencesPerStepsCacheUsageCount = 0;
+    const cache: cache = {};
     let cacheUsageCount = 0;
 
-    const occurencesCache: { [key: string]: elementsCount } = {};
-    let occurencesCacheUsageCount = 0;
     const sumOccurences = getPolymersAfterInsertionsRec(initialPolymer, steps);
 
     // all sub polymers were trimmed, even the last one.
     sumOccurences[initialPolymer[initialPolymer.length - 1]]++;
 
-    console.log("cache stats");
+    console.log("cache stats 📈");
     console.log(`\tcache was used ${cacheUsageCount} times! 🌸`);
     console.log(
-        `\toccurencesCache was used ${occurencesCacheUsageCount} times! 🌸`
+        `\tcache per steps was used ${occurencesPerStepsCacheUsageCount} times! 🌸`
     );
 
     return sumOccurences;
@@ -118,16 +126,16 @@ export function getPolymerElementsCountAfterInsertions(
     ): elementsCount {
         const interval = 6;
         if (steps === 0) {
-            const trimmedPolymer = polymer.slice(0, polymer.length - 1);
+            const trimmedPolymer = getTrimmedPolymer(polymer);
 
-            if (!occurencesCache[trimmedPolymer]) {
-                occurencesCache[trimmedPolymer] =
+            if (!occurencesPerStepsCache[steps][trimmedPolymer]) {
+                occurencesPerStepsCache[steps][trimmedPolymer] =
                     getElementsCount(trimmedPolymer);
             } else {
-                occurencesCacheUsageCount++;
+                occurencesPerStepsCacheUsageCount++;
             }
 
-            return occurencesCache[trimmedPolymer];
+            return occurencesPerStepsCache[steps][trimmedPolymer];
         }
 
         const polymersLengthInterval = getPolymersOfLength(polymer, interval);
@@ -165,14 +173,21 @@ export function getPolymerElementsCountAfterInsertions(
 
             doublePolymersWithNeighbours.push(polymerLength10);
         }
-
         const sumOccurences: elementsCount = {};
 
-        for (const polymerLength10 of doublePolymersWithNeighbours) {
-            const subElementsCount = getPolymersAfterInsertionsRec(
-                polymerLength10,
-                steps - 1
-            );
+        for (const polymerWithNeighbour of doublePolymersWithNeighbours) {
+            if (!occurencesPerStepsCache[steps - 1][polymerWithNeighbour]) {
+                occurencesPerStepsCache[steps - 1][polymerWithNeighbour] =
+                    getPolymersAfterInsertionsRec(
+                        polymerWithNeighbour,
+                        steps - 1
+                    );
+            } else {
+                occurencesPerStepsCacheUsageCount++;
+            }
+
+            const subElementsCount =
+                occurencesPerStepsCache[steps - 1][polymerWithNeighbour];
 
             for (const [key, value] of Object.entries(subElementsCount)) {
                 if (!(key in sumOccurences)) {

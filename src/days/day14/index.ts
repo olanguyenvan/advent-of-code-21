@@ -46,7 +46,7 @@ function parsePolymersInput(rawInput: string): [polymer, insertions] {
 
 function solvePart1(initialPolymer: polymer, insertions: insertions): void {
     const t0 = performance.now();
-    const steps = 10;
+    const steps = 7;
     const polymer = getPolymerAfterInsertions(
         initialPolymer,
         insertions,
@@ -57,9 +57,10 @@ function solvePart1(initialPolymer: polymer, insertions: insertions): void {
     const result = mostCommonElementCount - leastCommonElementCount;
     const t1 = performance.now();
 
+    console.log("initial polymer is", initialPolymer);
     // console.log(`Polymer is ${polymer}`);
-    // console.log("elements count:");
-    // console.log(getElementsCount(polymer));
+    console.log("elements count:");
+    console.log(getElementsCount(polymer));
     console.log(`Polymer's length is ${polymer.length}`);
     console.log(`Answer to part 1 is: ${result}.`);
     console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds.`);
@@ -69,13 +70,14 @@ function solvePart1(initialPolymer: polymer, insertions: insertions): void {
 
 function solvePart2(initialPolymer: polymer, insertions: insertions): void {
     const t0 = performance.now();
-    const steps = 20;
+    const steps = 7;
     const elementsCount = getPolymerElementsCountAfterInsertions(
         initialPolymer,
         insertions,
         steps
     );
 
+    console.log(elementsCount);
     let max = 0;
     let min = elementsCount[initialPolymer[0]];
 
