@@ -9,7 +9,7 @@ import {
     polymer,
     insertions,
     getPolymerElementsCountAfterInsertions,
-    getPolymersOfLengthWithNextNeighbour,
+    getOverlappingSubPolymers,
     getPolymerAfterInsertions,
 } from "./polymers.ts";
 
@@ -65,39 +65,30 @@ describe("getPolymerAfterInsertions", () => {
     );
 });
 
-describe("getPolymersOfLengthWithNextNeighbour", () => {
+describe("getOverlappingSubPolymers", () => {
     it("divides when polymer length is divisible by inteval", () => {
-        const resultDivision = getPolymersOfLengthWithNextNeighbour(
-            "olalandoug",
-            4
-        );
+        const resultDivision = getOverlappingSubPolymers("olalandoug", 4);
         const expectedDivisions = ["olal", "land", "doug"];
 
         assertEquals(resultDivision, expectedDivisions);
     });
 
     it("divides when polymer length is not divisible by inteval", () => {
-        const resultDivision = getPolymersOfLengthWithNextNeighbour(
-            "olalandou",
-            4
-        );
+        const resultDivision = getOverlappingSubPolymers("olalandou", 4);
         const expectedDivisions = ["olal", "land", "dou"];
 
         assertEquals(resultDivision, expectedDivisions);
     });
 
     it("does not divide when it's already meeting requirements", () => {
-        const resultDivision = getPolymersOfLengthWithNextNeighbour("olal", 4);
+        const resultDivision = getOverlappingSubPolymers("olal", 4);
         const expectedDivisions = ["olal"];
 
         assertEquals(resultDivision, expectedDivisions);
     });
 
     it("divides into 2", () => {
-        const resultDivision = getPolymersOfLengthWithNextNeighbour(
-            "123456789",
-            5
-        );
+        const resultDivision = getOverlappingSubPolymers("123456789", 5);
         const expectedDivisions = ["12345", "56789"];
 
         assertEquals(resultDivision, expectedDivisions);

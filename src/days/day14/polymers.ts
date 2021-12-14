@@ -3,6 +3,7 @@ export type insertions = {
     [key: string]: string;
 };
 export type elementsCount = { [key: string]: number };
+type cache = { [key: string]: string };
 
 export function getPolymerAfterInsertions(
     initialPolymer: polymer,
@@ -76,7 +77,7 @@ export function getElementsCount(polymer: polymer): elementsCount {
     return elementsCount;
 }
 
-export function getPolymersOfLengthWithNextNeighbour(
+export function getOverlappingSubPolymers(
     polymer: polymer,
     length: number
 ): polymer[] {
@@ -92,18 +93,18 @@ export function getPolymersOfLengthWithNextNeighbour(
     return polymers;
 }
 
+const INTERVAL = 10;
+
 export function getPolymerElementsCountAfterInsertions(
     initialPolymer: polymer,
     insertions: insertions,
     steps: number
 ): elementsCount {
-    type cache = { [key: string]: string };
-
     const occurencesPerStepsCache: { [key: string]: elementsCount }[] =
         Array.from(Array(steps + 1), () => ({}));
+    const cache: cache = {};
 
     let occurencesPerStepsCacheUsageCount = 0;
-    const cache: cache = {};
     let cacheUsageCount = 0;
 
     const sumOccurences = getPolymersAfterInsertionsRec(initialPolymer, steps);
@@ -120,7 +121,6 @@ export function getPolymerElementsCountAfterInsertions(
         polymer: polymer,
         steps: number
     ): elementsCount {
-        const interval = 6;
         if (steps === 0) {
             if (!occurencesPerStepsCache[steps][polymer]) {
                 occurencesPerStepsCache[steps][polymer] =
@@ -132,17 +132,13 @@ export function getPolymerElementsCountAfterInsertions(
             return occurencesPerStepsCache[steps][polymer];
         }
 
-        const polymersLengthInterval = getPolymersOfLengthWithNextNeighbour(
-            polymer,
-            interval
-        );
+        const subPolymers = getOverlappingSubPolymers(polymer, INTERVAL);
+        const polymersAfterInsert: polymer[] = [];
 
-        const doublePolymersWithNeighbours: polymer[] = [];
-
-        for (const polymerLengthInterval of polymersLengthInterval) {
-            if (!cache[polymerLengthInterval]) {
-                cache[polymerLengthInterval] = getPolymerAfterInsertions(
-                    polymerLengthInterval,
+        for (const subPolymer of subPolymers) {
+            if (!cache[subPolymer]) {
+                cache[subPolymer] = getPolymerAfterInsertions(
+                    subPolymer,
                     insertions,
                     1
                 );
@@ -150,53 +146,53 @@ export function getPolymerElementsCountAfterInsertions(
                 cacheUsageCount++;
             }
 
-            doublePolymersWithNeighbours.push(cache[polymerLengthInterval]);
+            polymersAfterInsert.push(cache[subPolymer]);
         }
 
         const sumOccurences: elementsCount = {};
 
-        for (const doublePolymerWithNeighbour of doublePolymersWithNeighbours) {
-            if (
-                !occurencesPerStepsCache[steps - 1][doublePolymerWithNeighbour]
-            ) {
-                occurencesPerStepsCache[steps - 1][doublePolymerWithNeighbour] =
-                    getPolymersAfterInsertionsRec(
-                        doublePolymerWithNeighbour,
-                        steps - 1
-                    );
+        for (const polymer of polymersAfterInsert) {
+            if (!occurencesPerStepsCache[steps - 1][polymer]) {
+                occurencesPerStepsCache[steps - 1][polymer] =
+                    getPolymersAfterInsertionsRec(polymer, steps - 1);
             } else {
                 occurencesPerStepsCacheUsageCount++;
             }
 
             const subElementsCount =
-                occurencesPerStepsCache[steps - 1][doublePolymerWithNeighbour];
+                occurencesPerStepsCache[steps - 1][polymer];
 
-            for (const [key, value] of Object.entries(subElementsCount)) {
-                if (!(key in sumOccurences)) {
-                    sumOccurences[key] = 0;
-                }
-
-                sumOccurences[key] += value;
-            }
-
-            const characterFromNext =
-                doublePolymerWithNeighbour[
-                    doublePolymerWithNeighbour.length - 1
-                ];
-
-            // character from next is also counted in the next double polymer so we subtract it
-            sumOccurences[characterFromNext] -= 1;
+            addElementsCounts(sumOccurences, subElementsCount);
         }
 
-        // because of substracting "next", we also substracted the last one.
-        // we need to bring it back
-        const lastPolymer =
-            doublePolymersWithNeighbours[
-                doublePolymersWithNeighbours.length - 1
-            ];
-        const theLastCharacter = lastPolymer[lastPolymer.length - 1];
-        sumOccurences[theLastCharacter] += 1;
+        removeDoubleCounts(sumOccurences, polymersAfterInsert);
 
         return sumOccurences;
     }
+}
+
+function addElementsCounts(
+    elementsCountTarget: elementsCount,
+    elementCountSource: elementsCount
+) {
+    for (const [key, value] of Object.entries(elementCountSource)) {
+        if (!(key in elementsCountTarget)) {
+            elementsCountTarget[key] = 0;
+        }
+
+        elementsCountTarget[key] += value;
+    }
+}
+
+// Polymers are overlapping, thus we need to remove double counts
+function removeDoubleCounts(sumOccurences: elementsCount, polymers: polymer[]) {
+    for (const polymer of polymers) {
+        const characterFromNext = polymer[polymer.length - 1];
+
+        sumOccurences[characterFromNext] -= 1;
+    }
+
+    const lastPolymer = polymers[polymers.length - 1];
+    const theLastCharacter = lastPolymer[lastPolymer.length - 1];
+    sumOccurences[theLastCharacter] += 1;
 }
