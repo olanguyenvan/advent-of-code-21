@@ -94,18 +94,6 @@ export function getPolymerElementsCountAfterInsertions(
     insertions: insertions,
     steps: number
 ): elementsCount {
-    console.log("initial polymer is", initialPolymer, initialPolymer.length);
-
-    // const resultNotRec = getPolymerAfterInsertions(
-    //     initialPolymer,
-    //     insertions,
-    //     steps
-    // );
-    // console.log(
-    //     "CONTROL: ",
-    //     //  resultNotRec,
-    //     resultNotRec.length
-    // );
     const cache: { [key: string]: string } = {};
 
     let cacheUsageCount = 0;
@@ -119,32 +107,46 @@ export function getPolymerElementsCountAfterInsertions(
     // add last character for the last polymers
     trimmedPolymers[trimmedPolymers.length - 1] = polymers[polymers.length - 1];
 
+    const occurencesCache: { [key: string]: elementsCount } = {};
+    let occurencesCacheUsageCount = 0;
+    const sumOccurences: elementsCount = {};
+
+    for (const trimmedPolymer of trimmedPolymers) {
+        if (!occurencesCache[trimmedPolymer]) {
+            occurencesCache[trimmedPolymer] = getElementsCount(trimmedPolymer);
+        } else {
+            occurencesCacheUsageCount++;
+        }
+
+        const elementsCount = occurencesCache[trimmedPolymer];
+
+        for (const [key, value] of Object.entries(elementsCount)) {
+            if (!(key in sumOccurences)) {
+                sumOccurences[key] = 0;
+            }
+
+            sumOccurences[key] += value;
+        }
+    }
+
+    console.log(`cache was used ${cacheUsageCount} times! 🌸`);
     console.log(
-        "RESULT: ",
-        // trimmedPolymers.join(""),
-        trimmedPolymers.join("").length
+        `occurencesCache was used ${occurencesCacheUsageCount} times out of ${trimmedPolymers.length} trimmed polymers! 🌸`
     );
 
-    // const polymers = [];
-    // const connections = []
-    console.log(`cache was used ${cacheUsageCount} times! 🌸`);
+    return sumOccurences;
 
     function getPolymersAfterInsertionsRec(
         polymer: polymer,
         steps: number
     ): polymer[] {
         const interval = 6;
-        // console.log("====> getPolymersAfterInsertionsRec", steps);
         if (steps === 0) {
             return [polymer];
         }
 
-        // console.log(`diving the polymer into ${interval} characters long`);
         const polymersLengthInterval = getPolymersOfLength(polymer, interval);
-        // console.log("divided: ", polymersLengthInterval);
         const connections: string[] = [];
-
-        // console.log("filling connections");
 
         for (let i = 0; i + 1 < polymersLengthInterval.length; i++) {
             const lastElement = polymersLengthInterval[i][interval - 1];
@@ -153,8 +155,6 @@ export function getPolymerElementsCountAfterInsertions(
 
             connections.push(insertions[chain]);
         }
-
-        // console.log("connections:", connections);
 
         // compute after 1 step and store in cache
         for (const polymerLengthInterval of polymersLengthInterval) {
@@ -181,22 +181,7 @@ export function getPolymerElementsCountAfterInsertions(
             doublePolymersWithNeighbours.push(polymerLength10);
         }
 
-        // console.log(
-        //     "doublePolymersWithNeighbours",
-        //     doublePolymersWithNeighbours
-        // );
-
-        // console.log(cache);
-
         const polymers: polymer[] = [];
-
-        // for (let i = 0; i < polymersLength10.length; i++) {
-        //     const const subPolymers = cache[polymersLength5[i]];
-        //     const after = connections[i];
-        //     const polymerLength10 = `${polymerLength5}${after ? after : ""}`;
-
-        //     polymersLength10.push(polymerLength10);
-        // }
 
         for (const polymerLength10 of doublePolymersWithNeighbours) {
             const subPolymers = getPolymersAfterInsertionsRec(
@@ -207,22 +192,6 @@ export function getPolymerElementsCountAfterInsertions(
             polymers.push(...subPolymers);
         }
 
-        // console.log("polymers are: ", polymers);
         return polymers;
     }
-
-    // console.log(`there are ${Object.values(insertions).length} insertions`);
-    // const elements = new Set();
-
-    // for (let i = 0; i < initialPolymer.length; i++) {
-    //     elements.add(initialPolymer[i]);
-    // }
-
-    // for (const toInsert of Object.values(insertions)) {
-    //     elements.add(toInsert);
-    // }
-
-    // console.log(elements.size, elements);
-
-    return getElementsCount(initialPolymer);
 }
