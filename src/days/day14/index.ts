@@ -5,6 +5,7 @@ import {
     getPolymerAfterInsertions,
     getMostCommonElementCount,
     getLeastCommonElementCount,
+    getPolymerElementsCountAfterInsertions,
 } from "./polymers.ts";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
@@ -18,6 +19,7 @@ function main(rawInput: string) {
 
     solvePart1(initialPolymer, insertions);
     console.log("\n");
+    solvePart2(initialPolymer, insertions);
 }
 
 const INSERTION_REGEX = /^([A-Z]{2}) -> ([A-Z])$/;
@@ -57,4 +59,30 @@ function solvePart1(initialPolymer: polymer, insertions: insertions): void {
     console.log(`Polymer's length is ${polymer.length}`);
     console.log(`Answer to part 1 is: ${result}.`);
     console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds.`);
+}
+
+// =======================
+
+function solvePart2(initialPolymer: polymer, insertions: insertions): void {
+    const t0 = performance.now();
+    const steps = 10;
+    const elementsCount = getPolymerElementsCountAfterInsertions(
+        initialPolymer,
+        insertions,
+        steps
+    );
+
+    let max = 0;
+    let min = elementsCount[initialPolymer[0]];
+
+    for (const value of Object.values(elementsCount)) {
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+    }
+
+    const result = max - min;
+    const t1 = performance.now();
+
+    console.log(`Answer to part 2 is: ${result}.`);
+    console.log(`Solution to part 2 was solved in ${t1 - t0} milliseconds.`);
 }
