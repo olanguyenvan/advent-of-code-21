@@ -76,21 +76,20 @@ export function getElementsCount(polymer: polymer): elementsCount {
     return elementsCount;
 }
 
-function getPolymersOfLength(polymer: polymer, length: number): polymer[] {
+export function getPolymersOfLengthWithNextNeighbour(
+    polymer: polymer,
+    length: number
+): polymer[] {
     const polymers: polymer[] = [];
 
     let i = 0;
 
-    while (i < polymer.length) {
+    while (i < polymer.length - 1) {
         polymers.push(polymer.slice(i, i + length));
-        i += length;
+        i += length - 1;
     }
 
     return polymers;
-}
-
-function getTrimmedPolymer(polymer: polymer): string {
-    return polymer.slice(0, polymer.length - 1);
 }
 
 export function getPolymerElementsCountAfterInsertions(
@@ -101,7 +100,7 @@ export function getPolymerElementsCountAfterInsertions(
     type cache = { [key: string]: string };
 
     const occurencesPerStepsCache: { [key: string]: elementsCount }[] =
-        Array.from(Array(steps), () => ({}));
+        Array.from(Array(steps + 1), () => ({}));
 
     let occurencesPerStepsCacheUsageCount = 0;
     const cache: cache = {};
@@ -109,10 +108,7 @@ export function getPolymerElementsCountAfterInsertions(
 
     const sumOccurences = getPolymersAfterInsertionsRec(initialPolymer, steps);
 
-    // all sub polymers were trimmed, even the last one.
-    sumOccurences[initialPolymer[initialPolymer.length - 1]]++;
-
-    console.log("cache stats 📈");
+    console.log("cache stats ♻️");
     console.log(`\tcache was used ${cacheUsageCount} times! 🌸`);
     console.log(
         `\tcache per steps was used ${occurencesPerStepsCacheUsageCount} times! 🌸`
@@ -126,30 +122,23 @@ export function getPolymerElementsCountAfterInsertions(
     ): elementsCount {
         const interval = 6;
         if (steps === 0) {
-            const trimmedPolymer = getTrimmedPolymer(polymer);
-
-            if (!occurencesPerStepsCache[steps][trimmedPolymer]) {
-                occurencesPerStepsCache[steps][trimmedPolymer] =
-                    getElementsCount(trimmedPolymer);
+            if (!occurencesPerStepsCache[steps][polymer]) {
+                occurencesPerStepsCache[steps][polymer] =
+                    getElementsCount(polymer);
             } else {
                 occurencesPerStepsCacheUsageCount++;
             }
 
-            return occurencesPerStepsCache[steps][trimmedPolymer];
+            return occurencesPerStepsCache[steps][polymer];
         }
 
-        const polymersLengthInterval = getPolymersOfLength(polymer, interval);
-        const connections: string[] = [];
+        const polymersLengthInterval = getPolymersOfLengthWithNextNeighbour(
+            polymer,
+            interval
+        );
 
-        for (let i = 0; i + 1 < polymersLengthInterval.length; i++) {
-            const lastElement = polymersLengthInterval[i][interval - 1];
-            const nextElement = polymersLengthInterval[i + 1][0];
-            const chain = `${lastElement}${nextElement}`;
+        const doublePolymersWithNeighbours: polymer[] = [];
 
-            connections.push(insertions[chain]);
-        }
-
-        // compute after 1 step and store in cache
         for (const polymerLengthInterval of polymersLengthInterval) {
             if (!cache[polymerLengthInterval]) {
                 cache[polymerLengthInterval] = getPolymerAfterInsertions(
@@ -160,26 +149,19 @@ export function getPolymerElementsCountAfterInsertions(
             } else {
                 cacheUsageCount++;
             }
+
+            doublePolymersWithNeighbours.push(cache[polymerLengthInterval]);
         }
 
-        const doublePolymersWithNeighbours: polymer[] = [];
-
-        // get result polymers with neighbours: <before><resultPolymer><after>
-        for (let i = 0; i < polymersLengthInterval.length; i++) {
-            const polymerLength5 = cache[polymersLengthInterval[i]];
-            const before = connections[i - 1] ? connections[i - 1] : "";
-            const after = connections[i] ? connections[i] : "";
-            const polymerLength10 = `${before}${polymerLength5}${after}`;
-
-            doublePolymersWithNeighbours.push(polymerLength10);
-        }
         const sumOccurences: elementsCount = {};
 
-        for (const polymerWithNeighbour of doublePolymersWithNeighbours) {
-            if (!occurencesPerStepsCache[steps - 1][polymerWithNeighbour]) {
-                occurencesPerStepsCache[steps - 1][polymerWithNeighbour] =
+        for (const doublePolymerWithNeighbour of doublePolymersWithNeighbours) {
+            if (
+                !occurencesPerStepsCache[steps - 1][doublePolymerWithNeighbour]
+            ) {
+                occurencesPerStepsCache[steps - 1][doublePolymerWithNeighbour] =
                     getPolymersAfterInsertionsRec(
-                        polymerWithNeighbour,
+                        doublePolymerWithNeighbour,
                         steps - 1
                     );
             } else {
@@ -187,7 +169,7 @@ export function getPolymerElementsCountAfterInsertions(
             }
 
             const subElementsCount =
-                occurencesPerStepsCache[steps - 1][polymerWithNeighbour];
+                occurencesPerStepsCache[steps - 1][doublePolymerWithNeighbour];
 
             for (const [key, value] of Object.entries(subElementsCount)) {
                 if (!(key in sumOccurences)) {
@@ -196,7 +178,24 @@ export function getPolymerElementsCountAfterInsertions(
 
                 sumOccurences[key] += value;
             }
+
+            const characterFromNext =
+                doublePolymerWithNeighbour[
+                    doublePolymerWithNeighbour.length - 1
+                ];
+
+            // character from next is also counted in the next double polymer so we subtract it
+            sumOccurences[characterFromNext] -= 1;
         }
+
+        // because of substracting "next", we also substracted the last one.
+        // we need to bring it back
+        const lastPolymer =
+            doublePolymersWithNeighbours[
+                doublePolymersWithNeighbours.length - 1
+            ];
+        const theLastCharacter = lastPolymer[lastPolymer.length - 1];
+        sumOccurences[theLastCharacter] += 1;
 
         return sumOccurences;
     }
