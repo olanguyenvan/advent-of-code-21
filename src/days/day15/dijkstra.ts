@@ -1,5 +1,55 @@
-export type map = number[][];
+export type tile = number[][];
 export type coordinate = [number, number];
+
+export class Map {
+    originalTile: number[][];
+    tilesInColumnCount: number;
+    tilesInRowCount: number;
+
+    constructor(
+        originalTile: number[][],
+        tilesInColumnCount: number,
+        tilesInRowCount: number
+    ) {
+        this.originalTile = originalTile;
+        this.tilesInColumnCount = tilesInColumnCount;
+        this.tilesInRowCount = tilesInRowCount;
+    }
+
+    get height() {
+        return this.originalTile.length * this.tilesInColumnCount;
+    }
+
+    get width() {
+        return this.originalTile[0].length * this.tilesInRowCount;
+    }
+
+    getValueAt(y: number, x: number): number {
+        const yMod = y % this.originalTile.length;
+        const xMod = x % this.originalTile[0].length;
+
+        const originalTileValue = this.originalTile[yMod][xMod];
+
+        const distanceFromOriginalTileX = Math.floor(
+            x / this.originalTile[0].length
+        );
+
+        const distanceFromOriginalTileY = Math.floor(
+            y / this.originalTile.length
+        );
+
+        const distanceFromCurrentTileToOriginal =
+            distanceFromOriginalTileX + distanceFromOriginalTileY;
+
+        let r = (originalTileValue + distanceFromCurrentTileToOriginal) % 9;
+
+        if (r === 0) {
+            r = 9;
+        }
+
+        return r;
+    }
+}
 
 function getNeighboursIndices(
     maxHeight: number,
@@ -21,11 +71,10 @@ function getNeighboursIndices(
     return potentialNeighbours.filter(exists);
 }
 
-export function findShortestPath(map: map): number {
-    const height = map.length;
-    const width = map.length;
-
-    const shortestPaths: map = Array.from(Array(height), () =>
+export function findShortestPath(map: Map): number {
+    const height = map.height;
+    const width = map.width;
+    const shortestPaths: number[][] = Array.from(Array(height), () =>
         new Array(width).fill(Infinity)
     );
     shortestPaths[0][0] = 0;
@@ -59,7 +108,10 @@ export function findShortestPath(map: map): number {
             const [coordinateYNeighbour, coordinateXNeighbour] = neighbour;
             const currentNeighbourValue =
                 shortestPaths[coordinateYNeighbour][coordinateXNeighbour];
-            const pathCost = map[coordinateYNeighbour][coordinateXNeighbour];
+            const pathCost = map.getValueAt(
+                coordinateYNeighbour,
+                coordinateXNeighbour
+            );
 
             if (currentNeighbourValue === Infinity) {
                 toVisit.push(neighbour);
