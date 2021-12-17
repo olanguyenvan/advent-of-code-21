@@ -11,7 +11,8 @@ function getDecreasedXVelocity(velocity: number): number {
 export function getMaximumY(area: area): number {
     const potentialXVelocities = getPotentialXVelocities(area);
 
-    let stepsCountToBeInTarget: Set<number> = new Set();
+    let exactStepsCountToBeInTarget: Set<number> = new Set();
+    let minimumStepsToStop = Infinity;
 
     {
         const [areaXStart, areaXEnd] = area.x;
@@ -22,10 +23,10 @@ export function getMaximumY(area: area): number {
             let distance = 0;
             let stepsCounter = 0;
 
-            while (stepsCounter < 5000) {
+            while (vlct > 0) {
                 distance += vlct;
                 if (isInRange(areaXStart, areaXEnd, distance)) {
-                    stepsCountToBeInTarget.add(stepsCounter);
+                    exactStepsCountToBeInTarget.add(stepsCounter);
                 } else if (distance > areaXEnd) {
                     break;
                 }
@@ -33,22 +34,21 @@ export function getMaximumY(area: area): number {
                 vlct = getDecreasedXVelocity(vlct);
                 stepsCounter++;
             }
+
+            if (vlct === 0 && isInRange(areaXStart, areaXEnd, distance)) {
+                minimumStepsToStop = Math.min(minimumStepsToStop, stepsCounter);
+            }
         }
     }
     // find maximumY that lets you be in target in one of stepsCountToBeInTarget
     const [areaYStart, areaYEnd] = area.y;
     let maxY = 0;
 
-    for (const stepsCount of stepsCountToBeInTarget) {
-        // console.log(`finding maximum height y for ${stepsCount} steps.`);
-
-        const bottom = Math.min(areaYStart, areaYEnd);
-        const top = Math.max(areaYStart, areaYEnd);
+    for (const stepsCount of exactStepsCountToBeInTarget) {
         let potentialVelocityY = 0;
 
         while (potentialVelocityY <= 200) {
             let stepsCountTmp = 0;
-            // console.log("checking potentiaVelocityY");
             let tmpVelocity = potentialVelocityY;
             let distance = 0;
             let tmpMax = 0;
@@ -64,19 +64,47 @@ export function getMaximumY(area: area): number {
                 stepsCountTmp += 1;
             }
 
-            // console.log(
-            //     `After ${stepsCount} steps y of initial vel =${tmpVelocity} was at ${distance}`
-            // );
             if (isInRange(areaYStart, areaYEnd, distance)) {
-                // console.log(
-                //     `y was in range for init vel ${potentialVelocityY} at point: ${distance}`
-                // );
                 maxY = Math.max(maxY, tmpMax);
                 break;
             }
 
             potentialVelocityY++;
         }
+    }
+
+    let stepsCount = minimumStepsToStop;
+
+    console.log("minimumStepsToStop", minimumStepsToStop);
+    while (stepsCount < 1000) {
+        let potentialVelocityY = 0;
+
+        while (potentialVelocityY <= 200) {
+            let stepsCountTmp = 0;
+            let tmpVelocity = potentialVelocityY;
+            let distance = 0;
+            let tmpMax = 0;
+
+            while (stepsCountTmp < stepsCount) {
+                distance += tmpVelocity;
+
+                if (tmpVelocity > 0) {
+                    tmpMax = distance;
+                }
+
+                tmpVelocity -= 1;
+                stepsCountTmp += 1;
+            }
+
+            if (isInRange(areaYStart, areaYEnd, distance)) {
+                maxY = Math.max(maxY, tmpMax);
+                break;
+            }
+
+            potentialVelocityY++;
+        }
+
+        stepsCount++;
     }
 
     return maxY;
