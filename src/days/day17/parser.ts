@@ -6,8 +6,11 @@ const AREA_REGEX =
 export function parseAreaInput(rawInput: string): area {
     const match = rawInput.match(AREA_REGEX)!;
     const [_, xStart, xEnd, yStart, yEnd] = match;
+    const parsedX = [xStart, xEnd].map((s) => parseInt(s, 10));
+    const parsedY = [yStart, yEnd].map((s) => parseInt(s, 10));
+
     return {
-        x: [parseInt(xStart, 10), parseInt(xEnd, 10)],
-        y: [parseInt(yStart, 10), parseInt(yEnd, 10)],
+        x: [Math.min(...parsedX), Math.max(...parsedX)],
+        y: [Math.max(...parsedY), Math.min(...parsedY)],
     };
 }

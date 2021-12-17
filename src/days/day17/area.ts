@@ -1,4 +1,4 @@
-import { area, velocity } from "./types.ts";
+import { area } from "./types.ts";
 
 function getDecreasedXVelocity(velocity: number): number {
     if (velocity === 0) return 0;
@@ -8,85 +8,96 @@ function getDecreasedXVelocity(velocity: number): number {
     return velocity + 1;
 }
 
-export function getMaximumY(area: area): number {
+export function getMaximumY(area: area): [number, number] {
     const potentialXVelocities = getPotentialXVelocities(area);
 
-    let exactStepsCountToBeInTarget: Set<number> = new Set();
-    let minimumStepsToStop = Infinity;
-
-    {
-        const [areaXStart, areaXEnd] = area.x;
-
-        for (const potentialXVelocity of potentialXVelocities) {
-            let vlct = potentialXVelocity;
-
-            let distance = 0;
-            let stepsCounter = 0;
-
-            while (vlct > 0) {
-                distance += vlct;
-                if (isInRange(areaXStart, areaXEnd, distance)) {
-                    exactStepsCountToBeInTarget.add(stepsCounter);
-                } else if (distance > areaXEnd) {
-                    break;
-                }
-
-                vlct = getDecreasedXVelocity(vlct);
-                stepsCounter++;
-            }
-
-            if (vlct === 0 && isInRange(areaXStart, areaXEnd, distance)) {
-                minimumStepsToStop = Math.min(minimumStepsToStop, stepsCounter);
-            }
-        }
-    }
-    // find maximumY that lets you be in target in one of stepsCountToBeInTarget
+    const [areaXStart, areaXEnd] = area.x;
     const [areaYStart, areaYEnd] = area.y;
+
+    const possibleCombinations: [number, number][] = [];
     let maxY = 0;
 
-    for (const stepsCount of exactStepsCountToBeInTarget) {
-        maxY = Math.max(maxY, getMaxY(stepsCount));
-    }
+    for (const potentialXVelocity of potentialXVelocities) {
+        let stepsToEnterArea = 0;
+        let stepsToLeaveArea = 0;
+        let distanceX = 0;
 
-    let stepsCount = minimumStepsToStop;
+        let velocity = potentialXVelocity;
 
-    while (stepsCount < 1000) {
-        maxY = Math.max(maxY, getMaxY(stepsCount));
-        stepsCount++;
-    }
-
-    return maxY;
-
-    function getMaxY(stepsCount: number): number {
-        let maxY = 0;
-        let potentialVelocityY = 0;
-
-        while (potentialVelocityY <= 200) {
-            let stepsCountTmp = 0;
-            let tmpVelocity = potentialVelocityY;
-            let distance = 0;
-            let tmpMax = 0;
-
-            while (stepsCountTmp < stepsCount) {
-                distance += tmpVelocity;
-
-                if (tmpVelocity > 0) {
-                    tmpMax = distance;
-                }
-
-                tmpVelocity -= 1;
-                stepsCountTmp += 1;
-            }
-
-            if (isInRange(areaYStart, areaYEnd, distance)) {
-                maxY = Math.max(maxY, tmpMax);
-                break;
-            }
-
-            potentialVelocityY++;
+        while (distanceX < areaXStart && velocity > 0) {
+            distanceX += velocity;
+            velocity = getDecreasedXVelocity(velocity);
+            stepsToEnterArea++;
         }
-        return maxY;
+
+        stepsToLeaveArea = stepsToEnterArea;
+
+        while (distanceX <= areaXEnd && velocity > 0) {
+            distanceX += velocity;
+            velocity = getDecreasedXVelocity(velocity);
+            stepsToLeaveArea++;
+        }
+
+        const stoppedInArea = isInRange(areaXStart, areaXEnd, distanceX);
+
+        let potentialYVelocity = areaYEnd;
+
+        // TO DO: Do a smarter check
+        while (potentialYVelocity <= 200) {
+            let velocityTmp = potentialYVelocity;
+
+            const potentialMax = (velocityTmp * (velocityTmp + 1)) / 2;
+
+            let distanceY = 0;
+            let stepsDone = 0;
+
+            while (stepsDone < stepsToEnterArea) {
+                distanceY += velocityTmp;
+                velocityTmp--;
+                stepsDone++;
+            }
+
+            if (stoppedInArea) {
+                let passedArea = distanceY < areaYEnd;
+
+                while (!passedArea) {
+                    if (isInRange(areaYStart, areaYEnd, distanceY)) {
+                        possibleCombinations.push([
+                            potentialXVelocity,
+                            potentialYVelocity,
+                        ]);
+                        maxY = Math.max(maxY, potentialMax);
+
+                        break;
+                    }
+
+                    distanceY += velocityTmp;
+                    velocityTmp--;
+
+                    passedArea = distanceY < areaYEnd;
+                }
+            } else {
+                while (stepsDone < stepsToLeaveArea) {
+                    if (isInRange(areaYStart, areaYEnd, distanceY)) {
+                        possibleCombinations.push([
+                            potentialXVelocity,
+                            potentialYVelocity,
+                        ]);
+                        maxY = Math.max(maxY, potentialMax);
+                        break;
+                    }
+
+                    distanceY += velocityTmp;
+                    velocityTmp--;
+                    stepsDone++;
+                }
+            }
+
+            potentialYVelocity++;
+        }
     }
+
+    return [maxY, possibleCombinations.length];
 }
 
 function isInRange(a: number, b: number, x: number): boolean {

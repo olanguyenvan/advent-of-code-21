@@ -14,14 +14,23 @@ function main(rawInput: string) {
 
     solvePart1(area);
     console.log("\n");
-    // solvePart2(packet);
+    solvePart2(area);
 }
 
 function solvePart1(area: area): void {
     const t0 = performance.now();
-    const maximumY = getMaximumY(area);
+    const [maximumY, _] = getMaximumY(area);
     const t1 = performance.now();
 
     console.log(`Answer to part 1 is: ${maximumY}.`);
     console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds.`);
+}
+
+function solvePart2(area: area): void {
+    const t0 = performance.now();
+    const [_, combinationsCount] = getMaximumY(area);
+    const t1 = performance.now();
+
+    console.log(`Answer to part 2 is: ${combinationsCount}.`);
+    console.log(`Solution to part 2 was solved in ${t1 - t0} milliseconds.`);
 }
