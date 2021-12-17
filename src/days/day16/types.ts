@@ -1,6 +1,17 @@
+export enum Type {
+    Sum,
+    Product,
+    Minimum,
+    Maximum,
+    Literal,
+    GreaterThan,
+    LessThan,
+    EqualTo,
+}
+
 type basicPacket = {
     version: number;
-    packetTypeId: number;
+    type: Type;
 };
 
 export type operatorPacket = basicPacket & {

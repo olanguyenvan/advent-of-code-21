@@ -1,6 +1,5 @@
-import { packet, literalPacket, operatorPacket } from "./types.ts";
+import { packet, literalPacket, Type } from "./types.ts";
 import {
-    LITERAL_PACKET_TYPE_ID,
     LENGTH_TYPE_ID_SUB_PACKETS_COUNT,
     LITERAL_VALUE_LAST_GROUP_PREFIX,
 } from "./constants.ts";
@@ -75,13 +74,13 @@ export function parsePacket(rawInputHexadecimal: string) {
 
     function parsePacketRec(): packet {
         const version = parseBinaryAndMoveCursor(3);
-        const packetTypeId = parseBinaryAndMoveCursor(3);
+        const type = parseBinaryAndMoveCursor(3);
         const basicPacket = {
             version,
-            packetTypeId,
+            type,
         };
 
-        if (packetTypeId === LITERAL_PACKET_TYPE_ID) {
+        if (type === Type.Literal) {
             const literalValue = parseLiteralValue();
 
             const literalPacket: literalPacket = {
