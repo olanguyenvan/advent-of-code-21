@@ -4,7 +4,7 @@ import { getMaximumY } from "./area.ts";
 import { area } from "./types.ts";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-const pathToInput = path.resolve(__dirname, "example_input");
+const pathToInput = path.resolve(__dirname, "input");
 
 Deno.readTextFile(pathToInput).then(main);
 

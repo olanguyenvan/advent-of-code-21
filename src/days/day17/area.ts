@@ -22,7 +22,7 @@ export function getMaximumY(area: area): number {
             let distance = 0;
             let stepsCounter = 0;
 
-            while (stepsCounter < 30) {
+            while (stepsCounter < 5000) {
                 distance += vlct;
                 if (isInRange(areaXStart, areaXEnd, distance)) {
                     stepsCountToBeInTarget.add(stepsCounter);
@@ -46,7 +46,7 @@ export function getMaximumY(area: area): number {
         const top = Math.max(areaYStart, areaYEnd);
         let potentialVelocityY = 0;
 
-        while (potentialVelocityY <= 100) {
+        while (potentialVelocityY <= 200) {
             let stepsCountTmp = 0;
             // console.log("checking potentiaVelocityY");
             let tmpVelocity = potentialVelocityY;
