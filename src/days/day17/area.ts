@@ -45,38 +45,20 @@ export function getMaximumY(area: area): number {
     let maxY = 0;
 
     for (const stepsCount of exactStepsCountToBeInTarget) {
-        let potentialVelocityY = 0;
-
-        while (potentialVelocityY <= 200) {
-            let stepsCountTmp = 0;
-            let tmpVelocity = potentialVelocityY;
-            let distance = 0;
-            let tmpMax = 0;
-
-            while (stepsCountTmp < stepsCount) {
-                distance += tmpVelocity;
-
-                if (tmpVelocity > 0) {
-                    tmpMax = distance;
-                }
-
-                tmpVelocity -= 1;
-                stepsCountTmp += 1;
-            }
-
-            if (isInRange(areaYStart, areaYEnd, distance)) {
-                maxY = Math.max(maxY, tmpMax);
-                break;
-            }
-
-            potentialVelocityY++;
-        }
+        maxY = Math.max(maxY, getMaxY(stepsCount));
     }
 
     let stepsCount = minimumStepsToStop;
 
-    console.log("minimumStepsToStop", minimumStepsToStop);
     while (stepsCount < 1000) {
+        maxY = Math.max(maxY, getMaxY(stepsCount));
+        stepsCount++;
+    }
+
+    return maxY;
+
+    function getMaxY(stepsCount: number): number {
+        let maxY = 0;
         let potentialVelocityY = 0;
 
         while (potentialVelocityY <= 200) {
@@ -103,11 +85,8 @@ export function getMaximumY(area: area): number {
 
             potentialVelocityY++;
         }
-
-        stepsCount++;
+        return maxY;
     }
-
-    return maxY;
 }
 
 function isInRange(a: number, b: number, x: number): boolean {
