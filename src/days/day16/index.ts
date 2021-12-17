@@ -1,5 +1,4 @@
 import * as path from "https://deno.land/std/path/mod.ts";
-// import { Map, tile, findShortestPath } from "./dijkstra.ts";
 import { parsePacket } from "./parser.ts";
 import { getVersionSums, getPacketsCalculated } from "./packet.ts";
 import { packet } from "./types.ts";
