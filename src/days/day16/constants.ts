@@ -1,0 +1,3 @@
+export const LITERAL_PACKET_TYPE_ID = 4;
+export const LENGTH_TYPE_ID_SUB_PACKETS_COUNT = 1;
+export const LITERAL_VALUE_LAST_GROUP_PREFIX = 0;
