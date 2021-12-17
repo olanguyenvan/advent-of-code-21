@@ -1,7 +1,7 @@
 import * as path from "https://deno.land/std/path/mod.ts";
-import { parsePacket } from "./parser.ts";
-import { getVersionSums, getPacketsCalculated } from "./packet.ts";
-import { packet } from "./types.ts";
+import { parseAreaInput } from "./parser.ts";
+import { getMaximumY } from "./area.ts";
+import { area } from "./types.ts";
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 const pathToInput = path.resolve(__dirname, "input");
@@ -10,29 +10,27 @@ Deno.readTextFile(pathToInput).then(main);
 
 // ========================
 function main(rawInput: string) {
-    const packet = parsePacket(rawInput);
+    const area = parseAreaInput(rawInput);
 
-    solvePart1(packet);
+    solvePart1(area);
     console.log("\n");
-    solvePart2(packet);
+    solvePart2(area);
 }
 
-function solvePart1(packet: packet): void {
+function solvePart1(area: area): void {
     const t0 = performance.now();
-    const sum = getVersionSums(packet);
+    const [maximumY, _] = getMaximumY(area);
     const t1 = performance.now();
 
-    console.log(`Answer to part 1 is: ${sum}.`);
+    console.log(`Answer to part 1 is: ${maximumY}.`);
     console.log(`Solution to part 1 was solved in ${t1 - t0} milliseconds.`);
 }
 
-getPacketsCalculated;
-
-function solvePart2(packet: packet): void {
+function solvePart2(area: area): void {
     const t0 = performance.now();
-    const result = getPacketsCalculated(packet);
+    const [_, combinationsCount] = getMaximumY(area);
     const t1 = performance.now();
 
-    console.log(`Answer to part 2 is: ${result}.`);
+    console.log(`Answer to part 2 is: ${combinationsCount}.`);
     console.log(`Solution to part 2 was solved in ${t1 - t0} milliseconds.`);
 }
