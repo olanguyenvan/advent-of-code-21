@@ -91,6 +91,7 @@ export function findShortestPath(map: Map): number {
     }
 
     while (toVisit.length > 0) {
+        // TO DO: Instead of sorting, insert at a proper place
         toVisit.sort(comparatorByMinimalPath);
         const current = toVisit.shift()!;
 

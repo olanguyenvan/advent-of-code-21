@@ -50,6 +50,13 @@ function createIndexFile(day: number) {
     fs.ensureFile(pathToIndex);
 }
 
+function createExampleInputFile(day: number) {
+    const pathToDay = getPathToDay(day);
+    const pathToIndex = path.resolve(pathToDay, "example_input");
+
+    fs.ensureFile(pathToIndex);
+}
+
 async function createScaffoldForDay(day: number) {
     const dayFolderName = getDayFolderName(day);
 
@@ -68,6 +75,7 @@ async function createScaffoldForDay(day: number) {
 async function createFilesInsideDay(day: number) {
     createIndexFile(day);
     createInputFile(day);
+    createExampleInputFile(day);
 }
 
 function getCookie() {
